@@ -302,6 +302,7 @@ class ShoreSquadApp {
     getWeather() {
         if (!navigator.geolocation) {
             alert('Geolocation is not supported by your browser');
+            this.displayWeatherWithMockData(null);
             return;
         }
 
@@ -311,8 +312,19 @@ class ShoreSquadApp {
         }
 
         navigator.geolocation.getCurrentPosition(
-            (position) => this.fetchWeather(position.coords),
-            (error) => this.handleGeolocationError(error)
+            (position) => {
+                console.log('Location obtained:', position.coords);
+                this.fetchWeather(position.coords);
+            },
+            (error) => {
+                console.error('Geolocation error:', error.message);
+                this.handleGeolocationError(error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
         );
     }
 
@@ -324,6 +336,23 @@ class ShoreSquadApp {
             const weatherContainer = document.getElementById('weather-container');
             if (weatherContainer) {
                 weatherContainer.innerHTML = '<p>🌤️ Loading weather data...</p>';
+            }
+
+            console.log('Fetching weather for coords:', coords);
+
+            // Get location name from coordinates using reverse geocoding
+            let locationName = 'Your Location';
+            try {
+                const geoResponse = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}`
+                );
+                if (geoResponse.ok) {
+                    const geoData = await geoResponse.json();
+                    locationName = geoData.address?.city || geoData.address?.town || geoData.address?.county || 'Your Location';
+                    console.log('Location resolved to:', locationName);
+                }
+            } catch (geoError) {
+                console.warn('Could not resolve location name:', geoError);
             }
 
             // Fetch current weather from NEA Realtime API
@@ -339,6 +368,7 @@ class ShoreSquadApp {
             }
 
             const weatherData = await weatherResponse.json();
+            console.log('Weather data received:', weatherData);
 
             // Fetch 4-day forecast from NEA API
             const forecastResponse = await fetch('https://api.data.gov.sg/v1/environment/4day-weather-forecast', {
@@ -351,9 +381,10 @@ class ShoreSquadApp {
             let forecastData = null;
             if (forecastResponse.ok) {
                 forecastData = await forecastResponse.json();
+                console.log('Forecast data received:', forecastData);
             }
 
-            this.displayWeather(weatherData, forecastData, coords);
+            this.displayWeather(weatherData, forecastData, coords, locationName);
         } catch (error) {
             console.error('Error fetching weather:', error);
             this.displayWeatherWithMockData(coords);
@@ -410,7 +441,7 @@ class ShoreSquadApp {
     /**
      * Display weather information with 4-day forecast
      */
-    displayWeather(currentWeather, forecast, coords) {
+    displayWeather(currentWeather, forecast, coords, locationName = 'Your Location') {
         const weatherContainer = document.getElementById('weather-container');
         if (!weatherContainer) return;
 
@@ -418,7 +449,6 @@ class ShoreSquadApp {
             // Extract current temperature from NEA data
             const stationData = currentWeather?.data?.stations?.[0];
             const currentTemp = stationData?.value ?? 28;
-            const stationName = stationData?.name ?? 'Singapore';
             
             // Extract forecast data
             const forecasts = forecast?.data?.forecasts ?? [];
@@ -426,7 +456,7 @@ class ShoreSquadApp {
             // Build current weather card
             let weatherHTML = `
                 <div class="weather-card">
-                    <p>📍 ${stationName}</p>
+                    <p>📍 ${locationName}</p>
                     <div class="weather-temp">${currentTemp}°C</div>
                     <p class="weather-description">Current Temperature</p>
                     <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.9;">
