@@ -13,6 +13,7 @@ class ShoreSquadApp {
         this.crews = [];
         this.userProfile = null;
         this.currentLocation = null;
+        this.isLoading = false;
         this.init();
     }
 
@@ -20,11 +21,16 @@ class ShoreSquadApp {
      * Initialize the application
      */
     init() {
-        this.setupEventListeners();
-        this.loadUserProfile();
-        this.loadMockCrews();
-        this.registerServiceWorker();
-        console.log('🌊 ShoreSquad initialized');
+        try {
+            this.setupEventListeners();
+            this.loadUserProfile();
+            this.loadMockCrews();
+            this.registerServiceWorker();
+            console.log('🌊 ShoreSquad initialized successfully');
+        } catch (error) {
+            console.error('Error initializing app:', error);
+            this.showErrorMessage('Failed to initialize app. Please refresh the page.');
+        }
     }
 
     /**
@@ -480,47 +486,52 @@ class ShoreSquadApp {
      * Display weather with mock data as fallback
      */
     displayWeatherWithMockData(coords) {
-        const mockWeatherData = {
-            data: {
-                stations: [
-                    {
-                        id: 'S117',
-                        name: 'Pasir Ris',
-                        device_id: 'S117',
-                        value: 28
-                    }
-                ]
-            }
-        };
+        try {
+            const mockWeatherData = {
+                data: {
+                    stations: [
+                        {
+                            id: 'S117',
+                            name: 'Pasir Ris',
+                            device_id: 'S117',
+                            value: 28
+                        }
+                    ]
+                }
+            };
 
-        const mockForecastData = {
-            data: {
-                forecasts: [
-                    {
-                        date: new Date().toISOString().split('T')[0],
-                        forecast: '☀️ Sunny',
-                        relative_humidity: '65%'
-                    },
-                    {
-                        date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-                        forecast: '⛅ Partly Cloudy',
-                        relative_humidity: '70%'
-                    },
-                    {
-                        date: new Date(Date.now() + 172800000).toISOString().split('T')[0],
-                        forecast: '🌤️ Mostly Sunny',
-                        relative_humidity: '68%'
-                    },
-                    {
-                        date: new Date(Date.now() + 259200000).toISOString().split('T')[0],
-                        forecast: '⛈️ Thunderstorm',
-                        relative_humidity: '80%'
-                    }
-                ]
-            }
-        };
+            const mockForecastData = {
+                data: {
+                    forecasts: [
+                        {
+                            date: new Date().toISOString().split('T')[0],
+                            forecast: '☀️ Sunny',
+                            relative_humidity: '65%'
+                        },
+                        {
+                            date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                            forecast: '⛅ Partly Cloudy',
+                            relative_humidity: '70%'
+                        },
+                        {
+                            date: new Date(Date.now() + 172800000).toISOString().split('T')[0],
+                            forecast: '🌤️ Mostly Sunny',
+                            relative_humidity: '68%'
+                        },
+                        {
+                            date: new Date(Date.now() + 259200000).toISOString().split('T')[0],
+                            forecast: '⛈️ Thunderstorm',
+                            relative_humidity: '80%'
+                        }
+                    ]
+                }
+            };
 
-        this.displayWeather(mockWeatherData, mockForecastData, coords);
+            this.displayWeather(mockWeatherData, mockForecastData, coords);
+        } catch (error) {
+            console.error('Error displaying mock weather:', error);
+            this.showErrorMessage('Unable to display weather data. Please try again.');
+        }
     }
 
     /**
@@ -653,6 +664,77 @@ class ShoreSquadApp {
             });
 
             document.querySelectorAll('img[data-src]').forEach(img => imageObserver.observe(img));
+        }
+    }
+
+    /**
+     * Show loading state
+     */
+    setLoading(container, isLoading, message = 'Loading...') {
+        if (!container) return;
+        
+        this.isLoading = isLoading;
+        
+        if (isLoading) {
+            container.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Show error message
+     */
+    showErrorMessage(message, containerId = 'weather-container') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        this.isLoading = false;
+        container.innerHTML = `
+            <div class="error-container">
+                <strong>❌ Error</strong>
+                <p>${message}</p>
+            </div>
+        `;
+    }
+
+    /**
+     * Show success message
+     */
+    showSuccessMessage(message, containerId = 'weather-container') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        this.isLoading = false;
+        container.innerHTML = `
+            <div class="success-container">
+                <strong>✅ Success</strong>
+                <p>${message}</p>
+            </div>
+        `;
+    }
+
+    /**
+     * Safe fetch with error handling
+     */
+    async safeFetch(url, options = {}) {
+        try {
+            const response = await fetch(url, {
+                timeout: 10000,
+                ...options
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status} ${response.statusText}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('Fetch error:', error);
+            throw error;
         }
     }
 }
