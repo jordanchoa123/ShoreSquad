@@ -18,6 +18,7 @@
             <ul class="nav-menu">
                 <li><a href="#home" aria-current="page">Home</a></li>
                 <li><a href="#crews">Find Crews</a></li>
+                <li><a href="#cleanup-map">Next Cleanup</a></li>
                 <li><a href="#weather">Weather</a></li>
                 <li><a href="#profile">Profile</a></li>
             </ul>
@@ -88,6 +89,32 @@
             <div id="weather-container" class="weather-container" role="region" aria-live="polite">
                 <p>Enable location to see local weather</p>
                 <button class="btn btn-secondary" id="get-weather-btn" aria-label="Get current weather for your location">Get My Weather</button>
+            </div>
+        </section>
+
+        <!-- Next Cleanup Location Map Section -->
+        <section id="cleanup-map" class="cleanup-map" aria-labelledby="cleanup-map-title">
+            <h2 id="cleanup-map-title">Next Cleanup: Pasir Ris 🗺️</h2>
+            <div class="map-container">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.822180046186!2d103.95507607509267!3d1.3814970989106247!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da25a94d4c6d01%3A0x2c3dc57ba5f5b8eb!2sPasir%20Ris%20Park!5e0!3m2!1sen!2ssg!4v1701388800000!5m2!1sen!2ssg" 
+                    width="100%" 
+                    height="450" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Next Cleanup Location at Pasir Ris"
+                    aria-label="Google Map showing next cleanup location at Pasir Ris with coordinates 1.381497, 103.955574">
+                </iframe>
+            </div>
+            <div class="cleanup-info">
+                <h3>📍 Cleanup Details</h3>
+                <ul class="cleanup-details-list">
+                    <li><strong>Location:</strong> Pasir Ris Park</li>
+                    <li><strong>Coordinates:</strong> 1.381497°N, 103.955574°E</li>
+                    <li><strong>Status:</strong> 🔔 Next Cleanup</li>
+                </ul>
             </div>
         </section>
 

@@ -411,6 +411,67 @@ a:hover {
 }
 
 /* ============================================
+   Cleanup Map Section
+   ============================================ */
+
+.cleanup-map {
+    max-width: 1200px;
+    margin: var(--spacing-xxl) auto;
+    padding: var(--spacing-xxl) var(--spacing-md);
+}
+
+.cleanup-map h2 {
+    margin-bottom: var(--spacing-lg);
+    color: var(--color-primary);
+}
+
+.map-container {
+    width: 100%;
+    margin-bottom: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.map-container iframe {
+    display: block;
+    border-radius: var(--radius-lg);
+}
+
+.cleanup-info {
+    background: var(--color-light);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border-left: 4px solid var(--color-accent);
+}
+
+.cleanup-info h3 {
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.cleanup-details-list {
+    list-style: none;
+    padding: 0;
+}
+
+.cleanup-details-list li {
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+.cleanup-details-list li:last-child {
+    border-bottom: none;
+}
+
+.cleanup-details-list strong {
+    color: var(--color-neutral);
+    font-weight: 600;
+}
+
+/* ============================================
    Weather Section
    ============================================ */
 
