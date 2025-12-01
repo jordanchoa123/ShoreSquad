@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ShoreSquad - Rally your crew, track weather, and hit the next beach cleanup!">
+    <meta name="theme-color" content="#0077BE">
+    <title>ShoreSquad - Beach Cleanup United</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="header" role="banner">
+        <nav class="nav-container" role="navigation" aria-label="Main navigation">
+            <div class="logo">
+                <h1>🌊 ShoreSquad</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" aria-current="page">Home</a></li>
+                <li><a href="#crews">Find Crews</a></li>
+                <li><a href="#weather">Weather</a></li>
+                <li><a href="#profile">Profile</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app" role="main">
+        <!-- Hero Section -->
+        <section id="home" class="hero" aria-labelledby="hero-title">
+            <div class="hero-content">
+                <h2 id="hero-title">Rally Your Crew 🏖️</h2>
+                <p class="hero-subtitle">Track weather, plan cleanups, make impact together</p>
+                <button class="btn btn-primary" id="get-started-btn" aria-label="Get started with ShoreSquad">Get Started</button>
+            </div>
+            <div class="hero-image" aria-hidden="true">
+                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="100" cy="100" r="80" fill="#2EC4B6" opacity="0.3"/>
+                    <path d="M 60 120 Q 100 80, 140 120" stroke="#0077BE" stroke-width="3" fill="none"/>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="features" aria-labelledby="features-title">
+            <h2 id="features-title">Why ShoreSquad?</h2>
+            <div class="features-grid">
+                <article class="feature-card">
+                    <h3>🗺️ Smart Maps</h3>
+                    <p>Discover beaches near you and organize cleanups with ease</p>
+                </article>
+                <article class="feature-card">
+                    <h3>🌤️ Live Weather</h3>
+                    <p>Plan perfect cleanup days with real-time weather tracking</p>
+                </article>
+                <article class="feature-card">
+                    <h3>👥 Build Your Crew</h3>
+                    <p>Rally friends and teammates for maximum beach impact</p>
+                </article>
+                <article class="feature-card">
+                    <h3>🏆 Track Impact</h3>
+                    <p>See how much waste you've collected and celebrate wins</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- Crews Section -->
+        <section id="crews" class="crews" aria-labelledby="crews-title">
+            <h2 id="crews-title">Find Your Crew</h2>
+            <div class="crew-controls">
+                <input 
+                    type="text" 
+                    id="crew-search" 
+                    placeholder="Search crews or beaches..."
+                    class="search-input"
+                    aria-label="Search for crews"
+                >
+                <button class="btn btn-secondary" id="create-crew-btn" aria-label="Create a new crew">+ Create Crew</button>
+            </div>
+            <div id="crews-list" class="crews-list" role="region" aria-live="polite" aria-label="Available crews">
+                <!-- Populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Weather Section -->
+        <section id="weather" class="weather" aria-labelledby="weather-title">
+            <h2 id="weather-title">Today's Beach Conditions</h2>
+            <div id="weather-container" class="weather-container" role="region" aria-live="polite">
+                <p>Enable location to see local weather</p>
+                <button class="btn btn-secondary" id="get-weather-btn" aria-label="Get current weather for your location">Get My Weather</button>
+            </div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profile" class="profile-section" aria-labelledby="profile-title">
+            <h2 id="profile-title">My Profile</h2>
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar" aria-hidden="true">👤</div>
+                    <div class="profile-info">
+                        <h3 id="profile-name">Create Your Profile</h3>
+                        <p id="profile-status">Join ShoreSquad to start making waves</p>
+                    </div>
+                </div>
+                <form id="profile-form" class="profile-form" aria-label="User profile form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" placeholder="Your crew name" aria-required="true">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="your@email.com" aria-required="true">
+                    </div>
+                    <button type="submit" class="btn btn-primary" aria-label="Save profile">Save Profile</button>
+                </form>
+                <div id="profile-stats" class="profile-stats">
+                    <div class="stat">
+                        <span class="stat-number">0</span>
+                        <span class="stat-label">Cleanups</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">0</span>
+                        <span class="stat-label">Crew Members</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">0 kg</span>
+                        <span class="stat-label">Trash Collected</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <p>&copy; 2024 ShoreSquad. Making beaches cleaner, one crew at a time 🌊</p>
+        <p class="footer-links">
+            <a href="#privacy">Privacy</a> | 
+            <a href="#terms">Terms</a> | 
+            <a href="#contact">Contact</a>
+        </p>
+    </footer>
+
+    <script src="js/app.js" defer></script>
+</body>
+</html>
