@@ -511,46 +511,113 @@ a:hover {
     font-size: var(--font-size-lg);
 }
 
+.forecast-header {
+    margin: var(--spacing-xl) 0 var(--spacing-lg) 0;
+    text-align: center;
+}
+
+.forecast-header h3 {
+    color: var(--color-light);
+    margin: 0;
+    font-size: var(--font-size-lg);
+}
+
 .forecast-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-lg);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
 }
 
 .forecast-card {
     background: rgba(255, 255, 255, 0.15);
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg);
     border-radius: var(--radius-md);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: transform var(--transition-base), box-shadow var(--transition-base);
+    text-align: center;
+    transition: all var(--transition-base);
 }
 
 .forecast-card:hover {
+    background: rgba(255, 255, 255, 0.25);
     transform: translateY(-4px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-.forecast-card h4 {
-    margin: 0 0 var(--spacing-sm) 0;
+.forecast-date {
+    margin-bottom: var(--spacing-md);
+}
+
+.forecast-date strong {
+    display: block;
+    font-size: var(--font-size-lg);
+    color: var(--color-light);
+    font-weight: 700;
+    margin-bottom: var(--spacing-xs);
+}
+
+.forecast-day-date {
+    font-size: var(--font-size-sm);
+    opacity: 0.85;
+    color: var(--color-light);
+}
+
+.forecast-emoji {
+    font-size: 2.5rem;
+    margin: var(--spacing-md) 0;
+    display: block;
+}
+
+.forecast-condition {
     font-size: var(--font-size-base);
     color: var(--color-light);
     font-weight: 600;
+    margin-bottom: var(--spacing-md);
 }
 
-.forecast-date {
+.forecast-details {
     font-size: var(--font-size-sm);
     opacity: 0.9;
-    margin: 0 0 var(--spacing-md) 0;
+    color: var(--color-light);
 }
 
-.forecast-text {
+.forecast-humidity {
+    margin: 0;
+    padding: var(--spacing-sm);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-sm);
+}
+
+.weather-location {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-light);
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.weather-source {
     font-size: var(--font-size-sm);
-    line-height: 1.6;
+    opacity: 0.85;
+    color: var(--color-light);
+    margin: 0;
 }
 
-.forecast-text p {
+.weather-header {
+    margin-bottom: var(--spacing-md);
+}
+
+.weather-footer {
+    text-align: center;
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    color: var(--color-light);
+}
+
+.weather-footer p {
     margin: var(--spacing-sm) 0;
 }
 

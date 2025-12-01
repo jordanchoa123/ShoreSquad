@@ -417,24 +417,25 @@ class ShoreSquadApp {
     }
 
     /**
-     * Fetch weather data from NEA API
+     * Fetch weather data from NEA API with proper error handling
      */
     async fetchWeather(coords, manualLocationName = null) {
+        const weatherContainer = document.getElementById('weather-container');
+        
         try {
-            const weatherContainer = document.getElementById('weather-container');
-            if (weatherContainer) {
-                weatherContainer.innerHTML = '<p>🌤️ Loading weather data...</p>';
-            }
-
+            this.setLoading(weatherContainer, true, '🌤️ Fetching weather data...');
             console.log('Fetching weather for coords:', coords);
 
             // Get location name from coordinates using reverse geocoding (if not provided manually)
             let locationName = manualLocationName || 'Your Location';
             
-            if (!manualLocationName) {
+            if (!manualLocationName && coords) {
                 try {
                     const geoResponse = await fetch(
-                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}`
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}`,
+                        { 
+                            headers: { 'User-Agent': 'ShoreSquad' }
+                        }
                     );
                     if (geoResponse.ok) {
                         const geoData = await geoResponse.json();
@@ -446,36 +447,48 @@ class ShoreSquadApp {
                 }
             }
 
-            // Fetch current weather from NEA Realtime API
-            const weatherResponse = await fetch('https://api.data.gov.sg/v1/environment/air-temperature', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
+            // Fetch current temperature from NEA API
+            let currentTemp = null;
+            let station = null;
+            try {
+                const tempResponse = await fetch('https://api.data.gov.sg/v1/environment/air-temperature', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (tempResponse.ok) {
+                    const tempData = await tempResponse.json();
+                    if (tempData?.data?.stations?.[0]) {
+                        station = tempData.data.stations[0];
+                        currentTemp = station.value;
+                        console.log('Current temperature:', currentTemp, '°C');
+                    }
                 }
-            });
-
-            if (!weatherResponse.ok) {
-                throw new Error(`Weather API error: ${weatherResponse.status}`);
+            } catch (tempError) {
+                console.warn('Could not fetch current temperature:', tempError);
             }
-
-            const weatherData = await weatherResponse.json();
-            console.log('Weather data received:', weatherData);
 
             // Fetch 4-day forecast from NEA API
-            const forecastResponse = await fetch('https://api.data.gov.sg/v1/environment/4day-weather-forecast', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
             let forecastData = null;
-            if (forecastResponse.ok) {
-                forecastData = await forecastResponse.json();
-                console.log('Forecast data received:', forecastData);
+            try {
+                const forecastResponse = await fetch('https://api.data.gov.sg/v1/environment/4day-weather-forecast', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (forecastResponse.ok) {
+                    forecastData = await forecastResponse.json();
+                    console.log('Forecast data received:', forecastData);
+                }
+            } catch (forecastError) {
+                console.warn('Could not fetch forecast:', forecastError);
             }
 
-            this.displayWeather(weatherData, forecastData, coords, locationName);
+            // Display weather with live data or mock data
+            if (currentTemp !== null || forecastData) {
+                this.displayWeather({ data: { stations: station ? [station] : [] } }, forecastData, coords, locationName);
+            } else {
+                console.warn('No weather data available, using mock data');
+                this.displayWeatherWithMockData(coords);
+            }
         } catch (error) {
             console.error('Error fetching weather:', error);
             this.displayWeatherWithMockData(coords);
@@ -545,6 +558,7 @@ class ShoreSquadApp {
             // Extract current temperature from NEA data
             const stationData = currentWeather?.data?.stations?.[0];
             const currentTemp = stationData?.value ?? 28;
+            const stationLocation = stationData?.name || locationName;
             
             // Extract forecast data
             const forecasts = forecast?.data?.forecasts ?? [];
@@ -552,32 +566,45 @@ class ShoreSquadApp {
             // Build current weather card
             let weatherHTML = `
                 <div class="weather-card">
-                    <p>📍 ${locationName}</p>
+                    <div class="weather-header">
+                        <p class="weather-location">📍 ${stationLocation}</p>
+                        <p class="weather-source">NEA Real-time Weather Reading</p>
+                    </div>
                     <div class="weather-temp">${currentTemp}°C</div>
                     <p class="weather-description">Current Temperature</p>
-                    <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.9;">
-                        Based on NEA Real-time Weather Readings
-                    </p>
                 </div>
             `;
 
             // Build 4-day forecast cards
             if (forecasts.length > 0) {
+                weatherHTML += '<div class="forecast-header"><h3>4-Day Forecast</h3></div>';
                 weatherHTML += '<div class="forecast-container">';
                 
                 forecasts.slice(0, 4).forEach((day, index) => {
                     const dateStr = day.date || new Date(Date.now() + (index * 86400000)).toISOString().split('T')[0];
-                    const date = new Date(dateStr);
-                    const dayName = date.toLocaleDateString('en-SG', { weekday: 'short', month: 'short', day: 'numeric' });
+                    const date = new Date(dateStr + 'T00:00:00');
+                    
+                    // Format date nicely
+                    const dayOfWeek = date.toLocaleDateString('en-SG', { weekday: 'short' });
+                    const dayDate = date.toLocaleDateString('en-SG', { month: 'short', day: 'numeric' });
+                    
+                    // Parse forecast condition
+                    const condition = day.forecast || 'Partly Cloudy';
+                    const emoji = this.getWeatherEmoji(condition);
+                    
+                    // Extract humidity if available
+                    const humidity = day.relative_humidity || 'N/A';
                     
                     weatherHTML += `
-                        <div class="forecast-card">
-                            <h4>${dayName}</h4>
-                            <div class="forecast-text">
-                                <p>${day.forecast ?? '🌤️ Partly Cloudy'}</p>
-                                <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.85;">
-                                    ${day.relative_humidity ? `💧 ${day.relative_humidity}` : '💧 70%'}
-                                </p>
+                        <div class="forecast-card card-hover">
+                            <div class="forecast-date">
+                                <strong>${dayOfWeek}</strong>
+                                <span class="forecast-day-date">${dayDate}</span>
+                            </div>
+                            <div class="forecast-emoji">${emoji}</div>
+                            <div class="forecast-condition">${condition}</div>
+                            <div class="forecast-details">
+                                <p class="forecast-humidity">💧 ${humidity}</p>
                             </div>
                         </div>
                     `;
@@ -587,17 +614,38 @@ class ShoreSquadApp {
             }
 
             weatherHTML += `
-                <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8; text-align: center;">
-                    <strong>Perfect beach cleanup weather!</strong> Get your crew together today!
-                </p>
+                <div class="weather-footer">
+                    <p><strong>🏖️ Perfect beach cleanup weather!</strong></p>
+                    <p>Plan your next crew cleanup with current conditions above.</p>
+                </div>
             `;
 
             weatherContainer.innerHTML = weatherHTML;
             this.currentLocation = coords;
+            console.log('Weather display updated successfully');
         } catch (error) {
             console.error('Error displaying weather:', error);
-            this.displayWeatherError('Error processing weather data. Showing mock data.');
+            this.showErrorMessage('Error processing weather data. Please try again.');
         }
+    }
+
+    /**
+     * Convert weather condition text to emoji
+     */
+    getWeatherEmoji(condition) {
+        const conditionLower = (condition || '').toLowerCase();
+        
+        if (conditionLower.includes('sunny') || conditionLower.includes('clear')) return '☀️';
+        if (conditionLower.includes('partly cloudy') || conditionLower.includes('partly')) return '⛅';
+        if (conditionLower.includes('mostly sunny')) return '🌤️';
+        if (conditionLower.includes('cloudy') || conditionLower.includes('overcast')) return '☁️';
+        if (conditionLower.includes('rain') || conditionLower.includes('shower')) return '🌧️';
+        if (conditionLower.includes('thunder') || conditionLower.includes('storm')) return '⛈️';
+        if (conditionLower.includes('drizzle')) return '🌦️';
+        if (conditionLower.includes('wind')) return '💨';
+        if (conditionLower.includes('fog') || conditionLower.includes('haze')) return '🌫️';
+        
+        return '🌤️';
     }
 
     /**
