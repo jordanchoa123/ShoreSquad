@@ -317,43 +317,102 @@ class ShoreSquadApp {
     }
 
     /**
-     * Fetch weather data (mock API call)
+     * Fetch weather data from NEA API
      */
-    fetchWeather(coords) {
-        // Mock weather data (in production, call real weather API)
-        const mockWeatherData = {
-            temp: 22,
-            condition: 'Sunny with light breeze',
-            humidity: 65,
-            windSpeed: 12,
-            location: 'Santa Monica Beach'
-        };
+    async fetchWeather(coords) {
+        try {
+            // Fetch current weather from NEA Realtime API
+            const weatherResponse = await fetch('https://api.data.gov.sg/v1/environment/air-temperature');
+            const weatherData = await weatherResponse.json();
 
-        this.displayWeather(mockWeatherData, coords);
+            // Fetch 4-day forecast from NEA API
+            const forecastResponse = await fetch('https://api.data.gov.sg/v1/environment/4day-weather-forecast');
+            const forecastData = await forecastResponse.json();
+
+            this.displayWeather(weatherData, forecastData, coords);
+        } catch (error) {
+            console.error('Error fetching weather:', error);
+            this.displayWeatherError('Unable to fetch weather data. Please try again.');
+        }
     }
 
     /**
-     * Display weather information
+     * Display weather information with 4-day forecast
      */
-    displayWeather(weather, coords) {
+    displayWeather(currentWeather, forecast, coords) {
         const weatherContainer = document.getElementById('weather-container');
         if (!weatherContainer) return;
 
-        weatherContainer.innerHTML = `
-            <div class="weather-card">
-                <p>📍 ${weather.location}</p>
-                <div class="weather-temp">${weather.temp}°C</div>
-                <p class="weather-description">${weather.condition}</p>
-                <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.9;">
-                    💨 Wind: ${weather.windSpeed} km/h | 💧 Humidity: ${weather.humidity}%
-                </p>
-                <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;">
+        try {
+            // Extract current temperature from NEA data
+            const stationData = currentWeather.data?.stations?.[0];
+            const currentTemp = stationData?.value ?? 'N/A';
+            
+            // Extract forecast data
+            const forecasts = forecast.data?.forecasts ?? [];
+            
+            // Build current weather card
+            let weatherHTML = `
+                <div class="weather-card">
+                    <p>📍 Singapore Coastal Area</p>
+                    <div class="weather-temp">${currentTemp}°C</div>
+                    <p class="weather-description">Current Temperature</p>
+                    <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.9;">
+                        Based on NEA Real-time Weather Readings
+                    </p>
+                </div>
+            `;
+
+            // Build 4-day forecast cards
+            if (forecasts.length > 0) {
+                weatherHTML += '<div class="forecast-container">';
+                
+                forecasts.slice(0, 4).forEach((day, index) => {
+                    const date = new Date(day.date);
+                    const dayName = date.toLocaleDateString('en-SG', { weekday: 'short', month: 'short', day: 'numeric' });
+                    
+                    weatherHTML += `
+                        <div class="forecast-card">
+                            <h4>${dayName}</h4>
+                            <p class="forecast-date">${dayName}</p>
+                            <div class="forecast-text">
+                                <p>🌡️ ${day.forecast ?? 'Partly Cloudy'}</p>
+                                <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.85;">
+                                    ${day.relative_humidity ? `💧 Humidity: ${day.relative_humidity}%` : ''}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                weatherHTML += '</div>';
+            }
+
+            weatherHTML += `
+                <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8; text-align: center;">
                     <strong>Perfect beach cleanup weather!</strong> Get your crew together today!
                 </p>
-            </div>
-        `;
+            `;
 
-        this.currentLocation = coords;
+            weatherContainer.innerHTML = weatherHTML;
+            this.currentLocation = coords;
+        } catch (error) {
+            console.error('Error displaying weather:', error);
+            this.displayWeatherError('Error processing weather data');
+        }
+    }
+
+    /**
+     * Display weather error message
+     */
+    displayWeatherError(message) {
+        const weatherContainer = document.getElementById('weather-container');
+        if (weatherContainer) {
+            weatherContainer.innerHTML = `
+                <p>❌ ${message}</p>
+                <button class="btn btn-secondary" onclick="app.getWeather()">Try Again</button>
+            `;
+        }
     }
 
     /**

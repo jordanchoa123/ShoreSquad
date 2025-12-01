@@ -511,6 +511,49 @@ a:hover {
     font-size: var(--font-size-lg);
 }
 
+.forecast-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+.forecast-card {
+    background: rgba(255, 255, 255, 0.15);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.forecast-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.forecast-card h4 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: var(--font-size-base);
+    color: var(--color-light);
+    font-weight: 600;
+}
+
+.forecast-date {
+    font-size: var(--font-size-sm);
+    opacity: 0.9;
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.forecast-text {
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+}
+
+.forecast-text p {
+    margin: var(--spacing-sm) 0;
+}
+
 /* ============================================
    Profile Section
    ============================================ */
