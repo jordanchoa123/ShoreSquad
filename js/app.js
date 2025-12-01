@@ -54,6 +54,26 @@ class ShoreSquadApp {
             getWeatherBtn.addEventListener('click', () => this.getWeather());
         }
 
+        // Manual location
+        const manualLocationBtn = document.getElementById('manual-location-btn');
+        if (manualLocationBtn) {
+            manualLocationBtn.addEventListener('click', () => this.toggleManualLocationForm());
+        }
+
+        const submitLocationBtn = document.getElementById('submit-location-btn');
+        if (submitLocationBtn) {
+            submitLocationBtn.addEventListener('click', () => this.getWeatherForManualLocation());
+        }
+
+        const manualLocationInput = document.getElementById('manual-location-input');
+        if (manualLocationInput) {
+            manualLocationInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.getWeatherForManualLocation();
+                }
+            });
+        }
+
         // Profile
         const profileForm = document.getElementById('profile-form');
         if (profileForm) {
@@ -297,18 +317,80 @@ class ShoreSquadApp {
     }
 
     /**
+     * Toggle manual location form visibility
+     */
+    toggleManualLocationForm() {
+        const form = document.getElementById('manual-location-form');
+        if (form) {
+            const isHidden = form.style.display === 'none';
+            form.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) {
+                const input = document.getElementById('manual-location-input');
+                if (input) input.focus();
+            }
+        }
+    }
+
+    /**
+     * Get weather for manually entered location
+     */
+    async getWeatherForManualLocation() {
+        const input = document.getElementById('manual-location-input');
+        if (!input || !input.value.trim()) {
+            alert('Please enter a location');
+            return;
+        }
+
+        const locationName = input.value.trim();
+        const weatherContainer = document.getElementById('weather-container');
+        if (weatherContainer) {
+            weatherContainer.innerHTML = `<p>🌤️ Loading weather for ${locationName}...</p>`;
+        }
+
+        try {
+            // Geocode the location to get coordinates
+            const geoResponse = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName)}&format=json&limit=1`
+            );
+            
+            if (!geoResponse.ok) {
+                throw new Error('Could not find location');
+            }
+
+            const geoData = await geoResponse.json();
+            if (!geoData || geoData.length === 0) {
+                throw new Error('Location not found');
+            }
+
+            const coords = {
+                latitude: parseFloat(geoData[0].lat),
+                longitude: parseFloat(geoData[0].lon)
+            };
+
+            console.log('Location found:', locationName, coords);
+
+            // Fetch weather for this location
+            await this.fetchWeather(coords, locationName);
+        } catch (error) {
+            console.error('Error getting weather for location:', error);
+            alert(`Could not find location: "${locationName}". Please try another location.`);
+            this.displayWeatherWithMockData(null);
+        }
+    }
+
+    /**
      * Get user's location and weather
      */
     getWeather() {
         if (!navigator.geolocation) {
-            alert('Geolocation is not supported by your browser');
-            this.displayWeatherWithMockData(null);
+            alert('Geolocation is not supported by your browser. Please use "Enter Location" instead.');
+            this.toggleManualLocationForm();
             return;
         }
 
         const weatherContainer = document.getElementById('weather-container');
         if (weatherContainer) {
-            weatherContainer.innerHTML = '<p>📍 Getting your location...</p>';
+            weatherContainer.innerHTML = '<p>📍 Requesting location access...</p>';
         }
 
         navigator.geolocation.getCurrentPosition(
@@ -317,7 +399,7 @@ class ShoreSquadApp {
                 this.fetchWeather(position.coords);
             },
             (error) => {
-                console.error('Geolocation error:', error.message);
+                console.error('Geolocation error:', error.code, error.message);
                 this.handleGeolocationError(error);
             },
             {
@@ -331,7 +413,7 @@ class ShoreSquadApp {
     /**
      * Fetch weather data from NEA API
      */
-    async fetchWeather(coords) {
+    async fetchWeather(coords, manualLocationName = null) {
         try {
             const weatherContainer = document.getElementById('weather-container');
             if (weatherContainer) {
@@ -340,19 +422,22 @@ class ShoreSquadApp {
 
             console.log('Fetching weather for coords:', coords);
 
-            // Get location name from coordinates using reverse geocoding
-            let locationName = 'Your Location';
-            try {
-                const geoResponse = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}`
-                );
-                if (geoResponse.ok) {
-                    const geoData = await geoResponse.json();
-                    locationName = geoData.address?.city || geoData.address?.town || geoData.address?.county || 'Your Location';
-                    console.log('Location resolved to:', locationName);
+            // Get location name from coordinates using reverse geocoding (if not provided manually)
+            let locationName = manualLocationName || 'Your Location';
+            
+            if (!manualLocationName) {
+                try {
+                    const geoResponse = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.latitude}&lon=${coords.longitude}`
+                    );
+                    if (geoResponse.ok) {
+                        const geoData = await geoResponse.json();
+                        locationName = geoData.address?.city || geoData.address?.town || geoData.address?.county || 'Your Location';
+                        console.log('Location resolved to:', locationName);
+                    }
+                } catch (geoError) {
+                    console.warn('Could not resolve location name:', geoError);
                 }
-            } catch (geoError) {
-                console.warn('Could not resolve location name:', geoError);
             }
 
             // Fetch current weather from NEA Realtime API
@@ -523,9 +608,21 @@ class ShoreSquadApp {
     handleGeolocationError(error) {
         const weatherContainer = document.getElementById('weather-container');
         if (weatherContainer) {
+            let errorMessage = 'Location access denied.';
+            if (error.code === 1) {
+                errorMessage = '❌ You denied location permission. Use "Enter Location" instead.';
+            } else if (error.code === 2) {
+                errorMessage = '❌ Location unavailable. Use "Enter Location" instead.';
+            } else if (error.code === 3) {
+                errorMessage = '❌ Location request timed out. Use "Enter Location" instead.';
+            }
+            
             weatherContainer.innerHTML = `
-                <p>❌ Location access denied. Please enable location in your browser settings.</p>
-                <button class="btn btn-secondary" onclick="app.getWeather()">Try Again</button>
+                <p>${errorMessage}</p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem;">
+                    <button class="btn btn-secondary" onclick="app.getWeather()">Retry</button>
+                    <button class="btn btn-secondary" onclick="app.toggleManualLocationForm()">Enter Location</button>
+                </div>
             `;
         }
     }

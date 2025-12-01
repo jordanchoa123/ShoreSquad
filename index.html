@@ -88,7 +88,21 @@
             <h2 id="weather-title">Today's Beach Conditions</h2>
             <div id="weather-container" class="weather-container" role="region" aria-live="polite">
                 <p>Enable location to see local weather</p>
-                <button class="btn btn-secondary" id="get-weather-btn" aria-label="Get current weather for your location">Get My Weather</button>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem;">
+                    <button class="btn btn-secondary" id="get-weather-btn" aria-label="Get current weather for your location">📍 Get My Weather</button>
+                    <button class="btn btn-secondary" id="manual-location-btn" aria-label="Enter location manually">🗺️ Enter Location</button>
+                </div>
+                <div id="manual-location-form" style="display: none; margin-top: 1rem;">
+                    <input 
+                        type="text" 
+                        id="manual-location-input" 
+                        placeholder="Enter city or beach name (e.g., Pasir Ris, East Coast)"
+                        class="search-input"
+                        style="margin-bottom: 0.5rem;"
+                        aria-label="Enter your location manually"
+                    >
+                    <button class="btn btn-primary" id="submit-location-btn" aria-label="Get weather for entered location">Get Weather</button>
+                </div>
             </div>
         </section>
 
